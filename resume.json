@@ -7,12 +7,12 @@
     "profiles": [
       {
         "network": "fa fa-linkedin",
-        "username": "linkedin/in/khaibq",
+        "username": " linkedin/in/khaibq",
         "url": "https://www.linkedin.com/in/khaibq/"
       },
       {
         "network": "fa fa-github",
-        "username": "gibhub/khaibq",
+        "username": " gibhub/khaibq",
         "url": "https://github.com/khaibq"
       }
     ],
