@@ -1,0 +1,46 @@
+name: Deploy Python ApiGateway with DynamoDB integration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.json' # Change to the file extension of the language that you are using.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: resume
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2 # To fetch the current commit and its parent (so we can compare)
+
+    - name: Setup AWS CLI
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1 # Modify this to your desired AWS region
+
+    - name: Print changed files # To properly debug what is being deployed (It can be removed).
+      run: |
+        echo "List of changed files:" 
+        echo $(git diff --name-only HEAD^ HEAD)
+
+
+    - name: Deploy Modified Files
+      run: |
+        # Describe stack and deploy ApiGateway to write DynamoDB Table"
+        apiurl_tmp=$(aws cloudformation describe-stacks --query "(Stacks[?StackName=='ResumeApiGwStack'][].Outputs[?OutputKey=='APIUrl'].OutputValue)[0][0]")
+        apiurl="${apiurl_tmp%\"}"
+        apiurl="${apiurl#\"}"
+        # echo "$apiurl"
+        tablename_tmp=$(aws cloudformation describe-stacks --query "(Stacks[?StackName=='ResumeApiGwStack'][].Outputs[?OutputKey=='TableName'].OutputValue)[0][0]")
+        tablename="${tablename_tmp%\"}"
+        tablename="${tablename#\"}"
+        # echo "$tablename"
+        url=$apiurl"?tablename="$tablename
+        # echo "$url"
+        curl -X POST $url -H 'Content-Type: application/json' -d @resume.json
